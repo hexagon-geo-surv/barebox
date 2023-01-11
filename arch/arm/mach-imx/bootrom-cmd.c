@@ -8,6 +8,7 @@
 #include <linux/bitfield.h>
 #include <mach/imx8m-regs.h>
 #include <mach/xload.h>
+#include <mach/romapi.h>
 #include <asm/barebox-arm.h>
 
 /* i.MX7 and later ID field is swapped compared to i.MX6 */
@@ -50,6 +51,9 @@ static const char *boot_device_0x6y[] = {
 static int imx8m_bootrom_decode_log(const u32 *rom_log)
 {
 	int i;
+
+	if (!rom_log)
+		return -ENODATA;
 
 	for (i = 0; i < 128; i++) {
 		u8 event_id = FIELD_GET(ROM_EVENT_FORMAT_V1_ID, rom_log[i]);
@@ -178,10 +182,16 @@ static int imx8m_bootrom_decode_log(const u32 *rom_log)
 
 static int do_bootrom(int argc, char *argv[])
 {
-	const struct imx_scratch_space *scratch = arm_mem_scratch_get();
-	const u32 *rom_log_addr = scratch->bootrom_log;
+	const u32 *rom_log_addr;
 	bool log = false;
 	int ret, opt;
+
+	if (current_el() == 3) {
+		rom_log_addr = __imx8m_get_bootrom_log();
+	} else {
+		const struct imx_scratch_space *scratch = arm_mem_scratch_get();
+		rom_log_addr = scratch->bootrom_log;
+	}
 
 	while((opt = getopt(argc, argv, "la:")) > 0) {
 		switch(opt) {
