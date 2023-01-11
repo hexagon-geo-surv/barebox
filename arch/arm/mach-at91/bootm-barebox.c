@@ -6,7 +6,6 @@
 #include <common.h>
 #include <init.h>
 #include <memory.h>
-#include <mach/cpu.h>
 #include <mach/sama5_bootsource.h>
 
 static int do_bootm_at91_barebox_image(struct image_data *data)
@@ -40,7 +39,7 @@ static struct image_handler image_handler_at91_barebox_image = {
 
 static int at91_register_barebox_image_handler(void)
 {
-	if (!of_machine_is_compatible("atmel,sama5d2"))
+	if (!of_machine_is_compatible("atmel,sama5"))
 	    return 0;
 
 	return register_image_handler(&image_handler_at91_barebox_image);
