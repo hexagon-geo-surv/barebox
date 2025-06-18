@@ -102,7 +102,8 @@ static void __init dbgu_soc_detect(u32 dbgu_base)
 
 	at91_soc_initdata.cidr = cidr;
 
-	if (at91_soc_initdata.type == AT91_SOC_SAM9G45) {
+	switch (at91_soc_initdata.type) {
+	case AT91_SOC_SAM9G45:
 		switch (at91_soc_initdata.exid) {
 		case ARCH_EXID_AT91SAM9M10:
 			at91_soc_initdata.subtype = AT91_SOC_SAM9M10;
@@ -114,9 +115,8 @@ static void __init dbgu_soc_detect(u32 dbgu_base)
 			at91_soc_initdata.subtype = AT91_SOC_SAM9M11;
 			break;
 		}
-	}
-
-	if (at91_soc_initdata.type == AT91_SOC_SAM9X5) {
+		break;
+	case AT91_SOC_SAM9X5:
 		switch (at91_soc_initdata.exid) {
 		case ARCH_EXID_AT91SAM9G15:
 			at91_soc_initdata.subtype = AT91_SOC_SAM9G15;
@@ -134,9 +134,8 @@ static void __init dbgu_soc_detect(u32 dbgu_base)
 			at91_soc_initdata.subtype = AT91_SOC_SAM9X25;
 			break;
 		}
-	}
-
-	if (at91_soc_initdata.type == AT91_SOC_SAM9N12) {
+		break;
+	case AT91_SOC_SAM9N12:
 		switch (at91_soc_initdata.exid) {
 		case ARCH_EXID_AT91SAM9N12:
 			at91_soc_initdata.subtype = AT91_SOC_SAM9N12;
@@ -148,9 +147,8 @@ static void __init dbgu_soc_detect(u32 dbgu_base)
 			at91_soc_initdata.subtype = AT91_SOC_SAM9CN12;
 			break;
 		}
-	}
-
-	if (at91_soc_initdata.type == AT91_SOC_SAMA5D3) {
+		break;
+	case AT91_SOC_SAMA5D3:
 		switch (at91_soc_initdata.exid) {
 		case ARCH_EXID_SAMA5D31:
 			at91_soc_initdata.subtype = AT91_SOC_SAMA5D31;
@@ -168,9 +166,8 @@ static void __init dbgu_soc_detect(u32 dbgu_base)
 			at91_soc_initdata.subtype = AT91_SOC_SAMA5D36;
 			break;
 		}
-	}
-
-	if (at91_soc_initdata.type == AT91_SOC_SAMA5D4) {
+		break;
+	case AT91_SOC_SAMA5D4:
 		switch (at91_soc_initdata.exid) {
 		case ARCH_EXID_SAMA5D41:
 			at91_soc_initdata.subtype = AT91_SOC_SAMA5D41;
@@ -185,10 +182,11 @@ static void __init dbgu_soc_detect(u32 dbgu_base)
 			at91_soc_initdata.subtype = AT91_SOC_SAMA5D44;
 			break;
 		}
+		break;
 	}
 }
 
-static void __init chipid_soc_detect(u32 chipid_base)
+static void __init chipid_soc_detect(void __iomem *chipid_base)
 {
 	u32 cidr, socid;
 
@@ -347,9 +345,9 @@ static int at91_detect(void)
 	if (!at91_soc_is_detected())
 		dbgu_soc_detect(AT91_BASE_DBGU1);
 	if (!at91_soc_is_detected())
-		dbgu_soc_detect(AT91_BASE_DBGU2);
+		dbgu_soc_detect(SAMA5D4_BASE_DBGU);
 	if (!at91_soc_is_detected())
-		chipid_soc_detect(0xfc069000);
+		chipid_soc_detect(SAMA5D2_BASE_CHIPID);
 
 	if (!at91_soc_is_detected())
 		panic("AT91: Impossible to detect the SOC type");
