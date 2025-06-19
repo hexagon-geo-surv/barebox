@@ -49,6 +49,7 @@ struct bootchooser {
 	struct state *state;
 	char *state_prefix;
 	int refs;
+	bool attempts_locked;
 
 	int verbose;
 	int dryrun;
@@ -353,6 +354,7 @@ struct bootchooser *bootchooser_get(void)
 	int ret = -EINVAL, id = 1;
 	uint32_t last_chosen;
 	static int attempts_resetted;
+	uint32_t locked;
 
 	if (bootchooser) {
 		bootchooser->refs++;
@@ -395,6 +397,14 @@ struct bootchooser *bootchooser_get(void)
 		 * Thus warn the user about their configuration.
 		 */
 		pr_warn("using non-redundant NV instead of barebox-state\n");
+	}
+
+	/* this is an optional value */
+	bc->attempts_locked = false;
+	ret = getenv_u32(bc->state_prefix, "attempts_locked", &locked);
+	if (!ret && locked) {
+		bc->attempts_locked = true;
+		pr_debug("remaining attempt counter is locked\n");
 	}
 
 	INIT_LIST_HEAD(&bc->targets);
@@ -650,11 +660,14 @@ static struct bootchooser_target *bootchooser_get_target(struct bootchooser *bc)
 	return ERR_PTR(-ENOENT);
 
 found:
-	target->remaining_attempts--;
-
-	if (bc->verbose)
-		pr_info("name=%s decrementing remaining_attempts to %d\n",
-			target->name, target->remaining_attempts);
+	if (!bc->attempts_locked) {
+		target->remaining_attempts--;
+		if (bc->verbose)
+			pr_info("name=%s remaining_attempts %d\n", target->name,
+				target->remaining_attempts);
+	} else {
+		pr_info("Attempts are locked, not decreasing remaining_attempts\n");
+	}
 
 	if (bc->verbose)
 		pr_info("selected target '%s', boot '%s'\n", target->name, target->boot);
